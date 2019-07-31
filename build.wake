@@ -1,0 +1,17 @@
+global def exampleScalaModule =
+  makeScalaModuleFromJSON here "example"
+  | setScalaModuleDeps (chisel3ScalaModule, Nil)
+  | setScalaModuleScalacOptions ("-Xsource:2.11", Nil)
+
+global def getVerilog =
+  def dir = simplify "{here}/obj/"
+  def firrtlOption =
+    runJava exampleScalaModule.scalaModuleClasspath "example.Main" ("--output=./{dir}", Nil) (source "./{dir}", Nil)
+    | getJobOutputs
+    | head
+  def firrtlFile = match firrtlOption
+    Some file = file 
+    None = "didn't generate .fir file".makeError.makeBadPath
+  #firrtlFile
+  runJava firrtlScalaModule.scalaModuleClasspath "firrtl.Driver" ("-tn","DoublePassthrough","-i","{getPathName firrtlFile}","-td","./{dir}","-ll","info","--info-mode","ignore","--compiler","verilog","--split-modules",Nil) (firrtlFile, Nil) | getJobOutputs | format | println
+#  firrtlFile | makeFirrtlCompilePlan firrtlScalaModule.scalaModuleClasspath "DoublePassthrough" "obj" | runFirrtlCompile | getFirrtlCompileOutputsTargetOutputs | format | println

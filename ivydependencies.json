@@ -1,0 +1,8 @@
+{
+  "example": {
+    "scalaVersion": "2.12.8",
+    "dependencies": [
+      "com.github.scopt::scopt:3.7.0"
+    ]
+  }
+}
