@@ -4,14 +4,32 @@ global def exampleScalaModule =
   | setScalaModuleScalacOptions ("-Xsource:2.11", Nil)
 
 global def getVerilog =
-  def dir = simplify "{here}/obj/"
-  def firrtlOption =
-    runJava exampleScalaModule.scalaModuleClasspath "example.Main" ("--output=./{dir}", Nil) (source "./{dir}", Nil)
+  def objPath = mkdir "{here}/obj/"
+  def obj = getPathName objPath
+  def topName = "AXI4LiteRegSlice"
+
+  def firrtlOutputs =
+    runJava exampleScalaModule.scalaModuleClasspath "example.Main" ("--output=./{obj}", Nil) (objPath, Nil)
     | getJobOutputs
+
+  def firrtlOutput filename =
+    firrtlOutputs
+    | filter (filename.simplify ==~ _.getPathName)
     | head
-  def firrtlFile = match firrtlOption
-    Some file = file 
-    None = "didn't generate .fir file".makeError.makeBadPath
-  #firrtlFile
-  runJava firrtlScalaModule.scalaModuleClasspath "firrtl.Driver" ("-tn","DoublePassthrough","-i","{getPathName firrtlFile}","-td","./{dir}","-ll","info","--info-mode","ignore","--compiler","verilog","--split-modules",Nil) (firrtlFile, Nil) | getJobOutputs | format | println
+    | getOrElse "firrtl didn't generate a file named {filename}!".makeError.makeBadPath
+
+  def firrtlFile = firrtlOutput "./{obj}/{topName}.fir"
+  def annoFile = firrtlOutput "./{obj}/{topName}.anno.json"
+  def firrtlOptions = 
+    "-tn","DoublePassthrough",
+    "-i","{getPathName firrtlFile}",
+    "-td","./{obj}",
+    "-ll","info",
+    "--info-mode","ignore",
+    "--compiler","verilog",
+    "--split-modules",
+    "-faf","{getPathName annoFile}",
+    Nil
+  
+  runJava firrtlScalaModule.scalaModuleClasspath "firrtl.Driver" firrtlOptions (firrtlFile, annoFile, Nil) | getJobOutputs | map getPathName
 #  firrtlFile | makeFirrtlCompilePlan firrtlScalaModule.scalaModuleClasspath "DoublePassthrough" "obj" | runFirrtlCompile | getFirrtlCompileOutputsTargetOutputs | format | println
