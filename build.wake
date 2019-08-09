@@ -31,5 +31,5 @@ global def getVerilog =
     "-faf","{getPathName annoFile}",
     Nil
   
-  runJava firrtlScalaModule.scalaModuleClasspath "firrtl.Driver" firrtlOptions (firrtlFile, annoFile, Nil) | getJobOutputs | map getPathName
-#  firrtlFile | makeFirrtlCompilePlan firrtlScalaModule.scalaModuleClasspath "DoublePassthrough" "obj" | runFirrtlCompile | getFirrtlCompileOutputsTargetOutputs | format | println
+  runJava firrtlScalaModule.scalaModuleClasspath "firrtl.Driver" firrtlOptions (firrtlFile, annoFile, Nil) | getJobOutputs
+
