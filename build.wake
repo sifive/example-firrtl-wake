@@ -3,27 +3,27 @@ global def exampleScalaModule =
   | setScalaModuleDeps (chisel3ScalaModule, Nil)
   | setScalaModuleScalacOptions ("-Xsource:2.11", Nil)
 
-global def getVerilog =
-  def objPath = mkdir "{here}/obj/"
-  def obj = getPathName objPath
+global def getVerilog outputLoc =
+  def outputDir = mkdir "{outputLoc}"
   def topName = "AXI4LiteRegSlice"
 
   def firrtlOutputs =
-    runJava exampleScalaModule.scalaModuleClasspath "example.Main" ("--output=./{obj}", Nil) (objPath, Nil)
+    runJava exampleScalaModule.scalaModuleClasspath "example.Main" ("--output={outputLoc}", Nil) (outputDir, Nil)
     | getJobOutputs
-
-  def firrtlOutput filename =
+  
+  def firrtlOutput regExp =
     firrtlOutputs
-    | filter (filename.simplify ==~ _.getPathName)
+    | filter (matches regExp _.getPathName)
     | head
-    | getOrElse "firrtl didn't generate a file named {filename}!".makeError.makeBadPath
+    | getOrElse "firrtl didn't generate a file matching {regExpToString regExp}!".makeError.makeBadPath
 
-  def firrtlFile = firrtlOutput "./{obj}/{topName}.fir"
-  def annoFile = firrtlOutput "./{obj}/{topName}.anno.json"
+  def firrtlFile = firrtlOutput `.*\.fir`
+  def annoFile = firrtlOutput `.*\.anno\.json`
+
   def firrtlOptions = 
     "-tn","DoublePassthrough",
     "-i","{getPathName firrtlFile}",
-    "-td","./{obj}",
+    "-td","{outputLoc}",
     "-ll","info",
     "--info-mode","ignore",
     "--compiler","verilog",
