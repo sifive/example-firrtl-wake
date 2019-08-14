@@ -13,7 +13,7 @@ $ cd workspace
 $ wit fetch-scala
 $ export WAKE_PATH=$PATH
 $ wake --init .
-$ wake -v 'getVerilog'
+$ wake 'getVerilog "verilog"'
 ```
 
 If you want to use your own Chisel module, just change which module gets elaborated in [Main.scala](src/main/scala/Main.scala):
