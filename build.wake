@@ -5,7 +5,6 @@ global def exampleScalaModule =
 
 global def getVerilog outputLoc =
   def outputDir = mkdir "{outputLoc}"
-  def topName = "AXI4LiteRegSlice"
 
   def firrtlOutputs =
     runJava exampleScalaModule.scalaModuleClasspath "example.Main" ("--output={outputLoc}", Nil) (outputDir, Nil)
